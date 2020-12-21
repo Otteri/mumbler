@@ -1,0 +1,6 @@
+.env
+data/
+profile*/*
+__pycache__/
+.py[cod]
+
