@@ -27,14 +27,14 @@ if __name__ == "__main__":
     print("Using data path: ", data_path)
 
     if args.verbose:
-        output = nlp.translate(user_input, max_length=50, verbose=True, data_path=data_path)
+        output, unknown_idx = nlp.translate(user_input, max_length=50, verbose=True, data_path=data_path)
     else:
-        output = nlp.translate(user_input, max_length=50, verbose=False, data_path=data_path)
-
+        output, unknown_idx = nlp.translate(user_input, max_length=50, verbose=False, data_path=data_path)
 
     if output is 1:
         print("Error!")
-    if output is 2:
-        nlp.teachSentence(user_input, data_path=data_path)
     else: # normal case
         print(output)
+
+    if unknown_idx > -1:
+        nlp.teachSentence(user_input, data_path=data_path)

@@ -39,12 +39,9 @@ def translate(input_sentence, max_length=50, data_path="data/", verbose=False):
         error_text = ("Make sure you are not trying to mix weights with different vocabulary.\n"
                       "Did you provide correct data path? Has vocabulary size changed and model requires retraining?")
         print(error_text)
-        return 1 # Note: funny things happen if we don't return
+        return 1
 
-    try:
-        output_words, _, = evaluate(encoder1, attn_decoder1, input_sentence, train_data.input_lang, train_data.output_lang, device)
-        output_sentence = ' '.join(output_words)        
-        return output_sentence
-    except KeyError:
-        # new word /sentence
-        return 2
+    output_words, _, unknown_idx = evaluate(encoder1, attn_decoder1, input_sentence, train_data.input_lang, train_data.output_lang, device)
+    output_sentence = ' '.join(output_words)
+    return output_sentence, unknown_idx
+

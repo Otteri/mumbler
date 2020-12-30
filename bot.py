@@ -34,12 +34,12 @@ async def on_message(message):
         data_path = "profile1/"
         user_input = message.content.split("/fin")[1].lower().strip()
         print(">", user_input)
-        output = nlp.translate(user_input, data_path=data_path)
+        output, unknown_idx  = nlp.translate(user_input, data_path=data_path)
     elif message.content.startswith("/kalevala "):
         data_path = "profile2/"
         user_input = message.content.split("/kalevala")[1].lower().strip()
         print(">", user_input)
-        output = nlp.translate(user_input, data_path=data_path)
+        output, unknown_idx  = nlp.translate(user_input, data_path=data_path)
     elif message.content.startswith("/teach "):
         # TODO: must check who user! Who is trying to teach?
         #if previous_data_path is not None:
@@ -48,19 +48,18 @@ async def on_message(message):
     else:
         print("Invalid command")
     
-    
-    # Handle output
     if output is 1:
         print("Error!")
-    elif output == 2:
+    else: # normal case
+        print("<", output)
+        await message.channel.send(output)
+
+    if unknown_idx > -1:
         info_text = ("I have not heard that sentence or word before.\n"
                      "You can help me to understand it by "
                      "typing a translation within 30s using '/teach' prefix.")
         previous_data_path = data_path
         previous_user_input = user_input
         await message.channel.send(info_text)
-    elif(output is not None):
-        print("<", output)
-        await message.channel.send(output)
 
 client.run(os.getenv("DISCORD_TOKEN"))

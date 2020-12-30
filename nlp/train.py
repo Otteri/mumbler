@@ -35,20 +35,40 @@ class TrainingSettings():
         self.teacher_forcing_ratio = 0.5
         self.learning_rate = 0.01
 
-#trainIters(train_data, encoder, decoder, n_iters, save_every=1000, plot_every=100, learning_rate=0.01, save_folder="data/"):
-
 def indexesFromSentence(lang, sentence):
-    return [lang.word2index[word] for word in sentence.split(' ')]
-
+    """
+    Assigns indices for each word in given sentence. This allows computers to handle text data.
+    In case of unknown word, -1 is appended to the index list. Otherwise values are positive.
+    Input: lang (Lang): Language class
+           sentence (str): sentence that shall be transformed to more mathematical form.
+    Return List of indices and a separate index telling position of unknown word.
+    """
+    indexes = []
+    unknown_idx = -1
+    for i, word in enumerate(sentence.split(' '), start=0):
+        try:
+            idx = lang.word2index[word]
+            indexes.append(idx)
+        except KeyError:
+            print(f"Unknown word: {word}, idx: {i}")
+            unknown_idx = i
+            indexes.append(-1)
+    return indexes, unknown_idx
 
 def tensorFromSentence(lang, sentence, device):
-    indexes = indexesFromSentence(lang, sentence)
+    """
+    Input lang (Lang)
+        sentence (str)
+        device (torch.device ?)
+    Return Sentence tensor and index of last unkown word.
+    """
+    indexes, unknown_idx = indexesFromSentence(lang, sentence)
     indexes.append(EOS_token)
-    return torch.tensor(indexes, dtype=torch.long, device=device).view(-1, 1)
+    return torch.tensor(indexes, dtype=torch.long, device=device).view(-1, 1), unknown_idx
 
 def tensorsFromPair(pair, input_lang, output_lang, device):
-    input_tensor = tensorFromSentence(input_lang, pair[0], device)
-    target_tensor = tensorFromSentence(output_lang, pair[1], device)
+    input_tensor, _ = tensorFromSentence(input_lang, pair[0], device)
+    target_tensor, _ = tensorFromSentence(output_lang, pair[1], device)
     return (input_tensor, target_tensor)
 
 # @param cfg (TrainingSettings): configuration used for training 
@@ -172,39 +192,33 @@ def trainIters(train_data, encoder, decoder, cfg):
 
 def evaluate(encoder, decoder, sentence, input_lang, output_lang, device, max_length=MAX_LENGTH):
     with torch.no_grad():
-        #print("sentence: ", sentence, "lang: ", input_lang)
-        input_tensor = tensorFromSentence(input_lang, sentence, device)
+        input_tensor, unknown_idx = tensorFromSentence(input_lang, sentence, device)
         input_length = input_tensor.size()[0]
         encoder_hidden = encoder.initHidden()
-
         encoder_outputs = torch.zeros(max_length, encoder.hidden_size, device=device)
 
         for ei in range(input_length):
-            encoder_output, encoder_hidden = encoder(input_tensor[ei],
-                                                     encoder_hidden)
-            encoder_outputs[ei] += encoder_output[0, 0]
+            if input_tensor[ei] > -1: # Feed only known word indices to encoder, otherwise crashes
+                encoder_output, encoder_hidden = encoder(input_tensor[ei], encoder_hidden)
+                encoder_outputs[ei] += encoder_output[0, 0]
 
         decoder_input = torch.tensor([[SOS_token]], device=device)  # SOS
-
         decoder_hidden = encoder_hidden
-
         decoded_words = []
         decoder_attentions = torch.zeros(max_length, max_length)
 
         for di in range(max_length):
-            decoder_output, decoder_hidden, decoder_attention = decoder(
-                decoder_input, decoder_hidden, encoder_outputs)
+            decoder_output, decoder_hidden, decoder_attention = decoder(decoder_input, decoder_hidden, encoder_outputs)
             decoder_attentions[di] = decoder_attention.data
             topv, topi = decoder_output.data.topk(1)
             if topi.item() == EOS_token:
-                #decoded_words.append('<EOS>')
                 break
             else:
                 decoded_words.append(output_lang.index2word[topi.item()])
 
             decoder_input = topi.squeeze().detach()
 
-        return decoded_words, decoder_attentions[:di + 1]
+        return decoded_words, decoder_attentions[:di + 1], unknown_idx
 
 # Lang class, attrs: pairs, input_lang, output_lang
 def evaluateRandomly(train_data, encoder, decoder, device, n=10):
@@ -213,7 +227,8 @@ def evaluateRandomly(train_data, encoder, decoder, device, n=10):
         print("pair:", pair)
         print('>', pair[0])
         print('=', pair[1])
-        output_words, attentions = evaluate(encoder, decoder, pair[0], train_data.input_lang, train_data.output_lang, device)
+        output_words, attentions, unknown_idx = evaluate(encoder, decoder, pair[0], train_data.input_lang, train_data.output_lang, device)
         output_sentence = ' '.join(output_words)
         print('<', output_sentence)
+        print("attentions:", attentions)
         print('')
