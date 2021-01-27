@@ -18,23 +18,13 @@ from parlai.core.agents import create_agent
 from parlai.core.worlds import create_task
 from parlai.core.script import ParlaiScript, register_script
 from parlai.utils.world_logging import WorldLogger
-from parlai_internal.agents.agent import LocalHumanAgent
+from parlai_internal.mumbler.agents.agent import LocalHumanAgent
+from parlai_internal.mumbler import config as cfg
 import parlai.utils.logging as logging
-
 import random
 import os
 
-# Note that both processes must be opened before the thing starts working.
-# Pipes block until each process intializes them.
-# Run:
-# 1) python write_question.py [wait a bit]
-# 2) python talk2.py -t internal:blended_skill_talk -mf zoo:blender/blender_90M/model
-# use izoo:xyz for custom model
-
-
-MSG_LENGTH = 512
-NAMED_FIFO = "/tmp/agent2discord"
-pipe = os.open(NAMED_FIFO, os.O_SYNC | os.O_CREAT | os.O_RDWR)
+pipe = os.open(cfg.PIPE_AGENT2DISCORD, os.O_SYNC | os.O_CREAT | os.O_RDWR)
 
 def setup_args(parser=None):
     if parser is None:

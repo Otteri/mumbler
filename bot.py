@@ -1,28 +1,30 @@
 import os
 from dotenv import load_dotenv
+from parlai_internal.mumbler import config as cfg
 import discord
 
-# Create pipes
-IPC_FIFO_NAME =  "/tmp/discord2agent"
-IPC_FIFO_NAME2 = "/tmp/agent2discord"
+read_pipe =  cfg.PIPE_AGENT2DISCORD
+write_pipe = cfg.PIPE_DISCORD2AGENT
+TOKEN = cfg.TOKEN
 
 # Make sure that env is clean
-if os.path.exists(IPC_FIFO_NAME):
-    os.remove(IPC_FIFO_NAME)
-if os.path.exists(IPC_FIFO_NAME2):
-    os.remove(IPC_FIFO_NAME2)
+if os.path.exists(read_pipe):
+    os.remove(read_pipe)
+if os.path.exists(write_pipe):
+    os.remove(write_pipe)
 
 # Create pipes
-fifo = os.mkfifo(IPC_FIFO_NAME)
-fifo2 = os.mkfifo(IPC_FIFO_NAME2)
+wf = os.mkfifo(write_pipe)
+rf = os.mkfifo(read_pipe)
 
 # Open the pipes
-fifo2 = os.open(IPC_FIFO_NAME2, os.O_RDONLY)
-fifo = os.open(IPC_FIFO_NAME, os.O_SYNC | os.O_CREAT | os.O_RDWR)
+wf = os.open(write_pipe, os.O_SYNC | os.O_CREAT | os.O_RDWR)
+rf = os.open(read_pipe, os.O_RDONLY) # os.O_NONBLOCK
+
+print("Pipes have been created")
 
 load_dotenv()
 client = discord.Client()
-TOKEN = ">>"
 
 @client.event
 async def on_ready():
@@ -52,10 +54,10 @@ async def on_message(message):
         # Pass message for the agent
         user_input = message.content.split(TOKEN)[1].lower().strip()
         content = f"{user_input}!".encode("utf8")
-        os.write(fifo, content)
+        os.write(wf, content)
         
         # Recieve data (blocking: waits until gets response)
-        response = os.read(fifo2, 512).decode('utf-8')
+        response = os.read(rf, cfg.MSG_LENGTH).decode('utf-8')
 
         if response:
             await message.channel.send(response)

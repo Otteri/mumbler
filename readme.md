@@ -21,3 +21,6 @@ debugging without Discord.
 * ParlAI
 * discord.py
 * dotEnv
+
+# Config
+Config settings should work as is, but these can be adjusted if desired.

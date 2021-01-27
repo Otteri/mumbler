@@ -3,8 +3,9 @@
 import signal
 from threading import Thread
 import subprocess
+from parlai_internal.mumbler import config as cfg
 
-MODEL = "zoo:blender/blender_90M/model"
+MODEL = cfg.MODEL
 
 def signal_handler(sig, frame):
     print('You pressed Ctrl+C!')
@@ -12,8 +13,8 @@ def signal_handler(sig, frame):
 
 if __name__ == "__main__":
     # Start processes
-    t1 = Thread(target=subprocess.run, args=(["python", "talk.py", "-t", "internal:blended_skill_talk", "-mf", MODEL],))
-    t2 = Thread(target=subprocess.run, args=(["python", "bot.py"], ))
+    t1 = Thread(target=subprocess.run, args=(["python", "bot.py"], ))
+    t2 = Thread(target=subprocess.run, args=(["python", "talk.py", "-t", "internal:blended_skill_talk", "-mf", MODEL],))
     t1.start()
     t2.start()
 

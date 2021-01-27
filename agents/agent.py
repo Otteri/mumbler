@@ -15,10 +15,11 @@ from parlai.core.agents import Agent
 from parlai.core.message import Message
 from parlai.utils.misc import display_messages, load_cands
 from parlai.utils.strings import colorize
+from parlai_internal.mumbler import config as cfg
 import os
 
-NAMED_FIFO = "/tmp/discord2agent"
-MSG_LENGTH = 512 # NN model can take in max ~300 char sequences
+PIPE = cfg.PIPE_DISCORD2AGENT
+MSG_LENGTH = cfg.MSG_LENGTH # NN model can take in max ~300 char sequences
 # Let writer close and handle fifo
 
 class LocalHumanAgent(Agent):
@@ -51,7 +52,7 @@ class LocalHumanAgent(Agent):
         self.episodeDone = False
         self.finished = False
         self.fixedCands_txt = load_cands(self.opt.get('local_human_candidates_file'))
-        self.p = os.open(NAMED_FIFO, os.O_RDONLY)
+        self.p = os.open(PIPE, os.O_RDONLY)
         print(
             colorize(
                 "Enter [DONE] if you want to end the episode, [EXIT] to quit.",
