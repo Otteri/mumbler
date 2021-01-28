@@ -2,64 +2,88 @@ import os
 from dotenv import load_dotenv
 from parlai_internal.mumbler import config as cfg
 import discord
+from discord.ext import commands
 
-read_pipe =  cfg.PIPE_AGENT2DISCORD
-write_pipe = cfg.PIPE_DISCORD2AGENT
-TOKEN = cfg.TOKEN
+# This file implements the discord bot
+#
+# References: 
+# https://discordpy.readthedocs.io/en/latest/ext/commands/cogs.html
 
-# Make sure that env is clean
-if os.path.exists(read_pipe):
-    os.remove(read_pipe)
-if os.path.exists(write_pipe):
-    os.remove(write_pipe)
+def create_pipes():
+    read_pipe =  cfg.PIPE_AGENT2DISCORD
+    write_pipe = cfg.PIPE_DISCORD2AGENT
 
-# Create pipes
-wf = os.mkfifo(write_pipe)
-rf = os.mkfifo(read_pipe)
+    # Make sure that env is clean
+    if os.path.exists(read_pipe):
+        os.remove(read_pipe)
+    if os.path.exists(write_pipe):
+        os.remove(write_pipe)
 
-# Open the pipes
-wf = os.open(write_pipe, os.O_SYNC | os.O_CREAT | os.O_RDWR)
-rf = os.open(read_pipe, os.O_RDONLY) # os.O_NONBLOCK
+    # Create pipes
+    wf = os.mkfifo(write_pipe)
+    rf = os.mkfifo(read_pipe)
 
-print("Pipes have been created")
+    # Open the pipes
+    wf = os.open(write_pipe, os.O_SYNC | os.O_CREAT | os.O_RDWR)
+    rf = os.open(read_pipe, os.O_RDONLY) # os.O_NONBLOCK
+    print("=== Pipes have been created ===")
+    return rf, wf
 
-load_dotenv()
-client = discord.Client()
+class Chat(commands.Cog):
+    def __init__(self, bot, rf, rw):
+        self.bot = bot
+        self.rf = rf
+        self.wf = wf
 
-@client.event
-async def on_ready():
-    print("Logged in as '{0.user}'".format(client))
+    @commands.Cog.listener()
+    async def on_ready(self):
+        print("Logged in as '{0.user}'".format(self.bot))
 
-def sanitize(string):
-    return string.lower().strip()
+    @commands.Cog.listener()
+    async def on_message(self, message):
+        response = None
+        # Ignore own messages
+        if message.author == self.bot.user:
+            return
 
-def show_help_msg():
-    text = ("```\n"
-            "Command:               info:\n"
-            ">> <english>           Talk with the bot \n"
-            "```")
-    return text
+        if message.content.startswith(cfg.TALK_PREFIX):
+            # Pass message for the chat-agent
+            user_input = message.content.split(cfg.TALK_PREFIX)[1].lower().strip()
+            content = f"{user_input}!".encode("utf8")
+            os.write(self.wf, content)
+            
+            # Recieve data (blocking: waits until gets response)
+            response = os.read(self.rf, cfg.MSG_LENGTH).decode('utf-8')
 
-@client.event
-async def on_message(message):
-    if message.author == client.user:
-        return
+            if response:
+                await message.channel.send(response)
 
-    response = None
+    @commands.command()
+    async def version(self, ctx):
+        version = "Mumbler - v0.0"
+        await ctx.send(version)
 
-    if message.content.startswith("$help"):
-        await message.channel.send(show_help_msg())
+    @commands.command()
+    async def help(self, ctx):
+        text = (
+                "```\n"
+                "Command:               info:\n"
+                "{prefix} <english>           Talk with the bot \n"
+                "```".format(prefix=cfg.TALK_PREFIX)
+                )
+        await ctx.send(text)
 
-    elif message.content.startswith(TOKEN):
-        # Pass message for the agent
-        user_input = message.content.split(TOKEN)[1].lower().strip()
-        content = f"{user_input}!".encode("utf8")
-        os.write(wf, content)
-        
-        # Recieve data (blocking: waits until gets response)
-        response = os.read(rf, cfg.MSG_LENGTH).decode('utf-8')
 
-        if response:
-            await message.channel.send(response)
+if __name__ == "__main__":
 
-client.run(os.getenv("DISCORD_TOKEN"))
+    # 1) Load environment variables
+    load_dotenv()
+
+    # 2) Establish IPC
+    rf, wf = create_pipes()
+
+    # 3) Initialize discord bot
+    intents = discord.Intents(messages=True)
+    bot = commands.Bot(command_prefix=cfg.COMMAND_PREFIX, intents=intents, help_command=None)
+    bot.add_cog(Chat(bot, rf, wf))
+    bot.run(os.getenv("DISCORD_TOKEN"))

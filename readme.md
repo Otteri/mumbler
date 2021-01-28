@@ -4,10 +4,10 @@ The service consists of two individual processes
 1) Discord bot
 2) Chat bot
 
-Discord bot handles communication with discord. It forwards user inputs
-for the chat bot. Chat bot processes inputs, generates an output and 
-passes it back for the discord bot, which shows the output for use.
-Communication between these processes has been implemented using pipes.
+Discord bot reads user inputs from a Discord chat service. It forwards user inputs
+for the Chat bot agent. The agent processes inputs, generates an output and 
+passes it back for the discord bot. Then discord bot writes the result to char.
+Communication between these processes have been implemented using pipes.
 
 # Usage
 Mumbler can be started with following command: `$ python main.py`
