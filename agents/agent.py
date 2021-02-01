@@ -78,7 +78,7 @@ class LocalHumanAgent(Agent):
         reply['id'] = self.getID()
         content_length = 0
         try:         
-            while content_length is 0:
+            while content_length == 0:
                 # Poll pipeline
                 text = str(os.read(self.p, MSG_LENGTH))
                 print("Processing captured text: %s" % text)
