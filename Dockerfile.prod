@@ -1,5 +1,5 @@
 ##########################################¤¤
-# Build: $ docker build -t mumbler .
+# Build: $ docker build -f Dockerfile.prod -t mumbler .
 # Run:   $ docker run --gpus all -it mumbler
 ############################################
 
