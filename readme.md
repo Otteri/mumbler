@@ -1,5 +1,5 @@
 # Mumbler
-An interactive discord chat bot. User can add the bot to a Discord server and then it is possible to chit-chat with the bot using discord's chat feature. Bot uses neural network and it has been trained to resemble human.
+An interactive Discord chat bot. User can chit-chat with the bot using Discord chat feature after adding the bot to a server. Chat bot uses large neural network and it has been trained to resemble human.
 
 ### Table of contents:
 * [Dependencies](#Dependencies)
@@ -33,12 +33,15 @@ Mumbler is heavily tied to ParlAI. ParlAI recommends custom code to be placed in
 
 Now it should be possible to start ParlAI agent and Discord bot either separately or simultaneously.
 
+If developing, you may want to download and build datasets outside the container and then copy these inside, so one does not need to spend time on building the same dictionaries over and over again. In other words, download datasets right after cloning and installing ParlAI.
+
 # Usage
 Mumbler can be started with following command: `$ python main.py`
 Script starts ParlAI agent and Discord bot instances.
 
-It is also possible to run and debug only ParlAI agent. Run the agent in one terminal:
-`$ python talk.py -t internal:blended_skill_talk -mf zoo:blender/blender_90M/model` and in another terminal, use `write.py` script to pass text for the agent. Hence, Discord setup is not necessarily required for only toying with the agent.
+It is also possible to run and debug only ParlAI agent. Instead of Discord bot, run `write.py` script, which is used for communicating with the agent via terminal. Then, launch the agent in another terminal with:  
+`$ python talk.py -t internal:blended_skill_talk -mf zoo:blender/blender_90M/model`
+(/app/ParlAI/parlai_internal/models/vainamoinen_90M.checkpoint)
 
 # Config
 All config settings should work as is. However, for optimized performance, these can be adjusted if desired.
@@ -49,11 +52,14 @@ Mumbler can be run using Docker. Production version can be built and launched wi
 $ docker build -f Dockerfile.prod -t mumbler .
 $ docker run --gpus all -it mumbler
 ```
-For more rapid development cycles, there is also an debug version of the image.
+For more rapid development cycles, there is also a debug version of the image.
 In debug version, the developer is expected to mount his local source files,
 which allows changes to be tested without need of always rebuilding the image. 
 Because task of mounting several directories is somewhat unpleasant to do, 
-there is a `start-debug.bash` script which can be used for starting the debug environment automatically.
+there is a `start-debug.bash` script which can be used for launching the debug environment automatically.
+Debug environment with mounted `models` directory can be also used for training a model.
 
 # References
-[Recipes for building an open-domain chatbot](https://arxiv.org/abs/2004.13637)
+* [Recipes for building an open-domain chatbot](https://arxiv.org/abs/2004.13637)
+* [🧙 of Wikipedia : Knowledge-powered conversational agents](https://arxiv.org/pdf/1811.01241.pdf)
+* [Personalizing Dialogue Agents: I have a dog, do you have pets too?](https://arxiv.org/abs/1801.07243)

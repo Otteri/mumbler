@@ -6,6 +6,7 @@
 FROM nvcr.io/nvidia/pytorch:20.12-py3 AS base
 
 # Currently installing from local files
+# TODO: clone ParlAI, download and build needed datasets
 COPY ParlAI/ /app/ParlAI/
 RUN cd /app/ParlAI/; python setup.py develop
 

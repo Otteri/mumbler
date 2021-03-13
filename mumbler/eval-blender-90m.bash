@@ -1,0 +1,1 @@
+python parlai/scripts/eval_model.py -t blended_skill_talk -mf "/app/ParlAI/parlai_internal/mumbler/vainamoinen_90M"
