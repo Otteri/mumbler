@@ -18,6 +18,9 @@ Discord bot reads user input from a Discord chat service. It forwards the input
 for the Chat bot, which then processes the user input, generates an output and 
 passes it back for the discord bot. Discord bot writes the result to chat. Division between these processes is very evident. Communication between processes is implemented using pipes.
 
+The bot requies a lot of training in order to be able to chat properly. Here is an chatting example with a model that has been trained for over 5 days with RTX 2080 8GB:
+![example discussion](./images/example-discussion.png)
+
 # Dependencies
 * [ParlAI](https://github.com/facebookresearch/ParlAI)
 * [discord.py](https://github.com/Rapptz/discord.py)
