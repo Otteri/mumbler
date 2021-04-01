@@ -49,6 +49,14 @@ It is also possible to run and debug only ParlAI agent. Instead of Discord bot, 
 # Config
 All config settings should work as is. However, for optimized performance, these can be adjusted if desired.
 
+# Tuning & Eval
+Pretrained model can be tuned with `tune.py` script.
+Model can be evaluatedwith command:
+```
+python parlai/scripts/eval_model.py -t blended_skill_talk -mf "/app/ParlAI/parlai_internal/mumbler/vainamoinen_90M"
+
+```
+
 # Docker
 Mumbler can be run using Docker. Production version can be built and launched with:
 ```
