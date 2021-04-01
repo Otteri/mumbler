@@ -6,11 +6,11 @@ from parlai.scripts.train_model import TrainModel
 TrainModel.main(
     task='blended_skill_talk,wizard_of_wikipedia,convai2:normalized', 
     model='transformer/generator',
-    multitask_weights='1,3,3,3', # string?
+    multitask_weights=(1.0, 3.0, 3.0, 3.0),
     
-    # initialize with a pretrained model
-    #init_model='zoo:tutorial_transformer_generator/model',     #'internal:vainamoinen_90M',
-    #dict_file='zoo:tutorial_transformer_generator/model.dict', #'internal:vainamoinen_90M.dict',
+    # initialize with a pretrained zoo model
+    #init_model='zoo:tutorial_transformer_generator/model',
+    #dict_file='zoo:tutorial_transformer_generator/model.dict',
 
     init_model='/app/ParlAI/parlai_internal/models/vainamoinen_90M.checkpoint',     #'internal:vainamoinen_90M',
     dict_file='/app/ParlAI/parlai_internal/models/vainamoinen_90M.checkpoint.dict', #'internal:vainamoinen_90M.dict',
@@ -36,7 +36,7 @@ TrainModel.main(
     lr_scheduler='reduceonplateau',
     gradient_clip=0.1,
     veps=0.25,
-    betas='0.9,0.999', # string?
+    betas=(0.9, 0.999),
     update_freq=1,
     attention_dropout=0.0,
     relu_dropout=0.0,

@@ -2,7 +2,6 @@ import os
 from parlai_internal.mumbler import config as cfg
 
 # python talk.py -t internal:blended_skill_talk -mf zoo:blender/blender_90M/model
-# use izoo:xyz for custom model
 
 if __name__ == "__main__":
     discord2agent = cfg.PIPE_DISCORD2AGENT

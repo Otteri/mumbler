@@ -49,8 +49,8 @@ class Chat(commands.Cog):
 
         if message.content.startswith(cfg.TALK_PREFIX):
             # Pass message for the chat-agent
-            user_input = message.content.split(cfg.TALK_PREFIX)[1].lower().strip()
-            content = f"{user_input}!".encode("utf8")
+            user_input = message.content.split(cfg.TALK_PREFIX)[1].strip() # .lower()
+            content = f"{user_input}".encode("utf-8")
             os.write(self.wf, content)
             
             # Recieve data (blocking: waits until gets response)
